@@ -27,16 +27,15 @@ extension ContextExt<Controller> on BuildContext {
 class Rx<T> {
   T _value;
   final StreamController<T> _controller;
-  Rx(T seed) :
-    _value = seed,
-    _controller = StreamController<T>.broadcast()
-  {}
-
+  Rx(T seed) : _value = seed, _controller = StreamController<T>.broadcast();
   //Stream<T> get stream => _controller.stream;
 
   T get value => _value;
 
-  set value(T v) { _value = v; _controller.add(v);}
+  set value(T v) {
+    _value = v;
+    _controller.add(v);
+  }
 
   // stream that immediately emits current value, then subsequent updates
   Stream<T> get stream async* {
@@ -45,13 +44,20 @@ class Rx<T> {
   }
 
   // subscribe convenience
-  StreamSubscription<T> listen(void Function(T) onData,
-      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
-    return stream.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+  StreamSubscription<T> listen(
+    void Function(T) onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) {
+    return stream.listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
   Future<void> close() => _controller.close();
+
+  void update() {
+    _controller.add(_value);
+  }
 }
 
 extension ObservableObjectExt<O> on O {
@@ -62,15 +68,11 @@ class Obx<S> extends StatelessWidget {
   final Rx<S> rx;
   final Widget Function() builder;
 
-  const Obx(this.rx, this.builder, {super.key,});
+  const Obx(this.rx, this.builder, {super.key});
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: rx.stream,
-      initialData: rx.value,
-      builder: (context, snapshot) => builder(),
-    );
+    return StreamBuilder(stream: rx.stream, initialData: rx.value, builder: (context, snapshot) => builder());
   }
 }
 

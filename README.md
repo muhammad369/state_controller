@@ -1,39 +1,55 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
+# State Controller
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages).
--->
-
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
-
-## Features
-
-TODO: List what your package can do. Maybe include images, gifs, or videos.
-
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
-
-## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+Liked the way GetX manages state, but don't want to use a big framework that does everything?
+few lines of code with no dependency, wrapping `InheritedWidget` and `StreamBuilder` 
 
 ```dart
-const like = 'sample';
+// provide the controller in higher point of the widgets tree
+StateProvider(
+  controller: Controller(),
+  view: MaterialApp(
+    home: const MyHomePage(),
+  )
+)
 ```
 
-## Additional information
+```dart
+// controller
+class Controller {
+  Rx<int> counter = 0.obs;
+  void increment() {
+    counter.value++;
+  }
+}
+```
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+```dart
+// view
+@override
+Widget build(BuildContext context) {
+  Controller controller = context.get();
+  //
+  return Scaffold(
+    appBar: AppBar(backgroundColor: Theme.of(context).colorScheme.inversePrimary, title: Text(title)),
+    body: Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        const Text('You have pushed the button this many times:'),
+        Obx(
+          controller.counter,
+          () => Text('${controller.counter.value}', style: Theme.of(context).textTheme.headlineMedium),
+        ),
+      ],
+    ),
+  ),
+  floatingActionButton: FloatingActionButton(
+    onPressed: controller.increment,
+    tooltip: 'Increment',
+    child: const Icon(Icons.add),
+    ), 
+  );
+}
+
+```

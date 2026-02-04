@@ -5,7 +5,6 @@ void main() {
   runApp(const MyApp());
 }
 
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -42,8 +41,9 @@ class MyHomePage extends StatelessWidget {
             const Text('You have pushed the button this many times:'),
             Obx(
               controller.counter,
-                  () => Text('${controller.counter.value}', style: Theme.of(context).textTheme.headlineMedium),
+              () => Text('${controller.counter.value}', style: Theme.of(context).textTheme.headlineMedium),
             ),
+            Obx(controller.list, () => SizedBox(height: 200, child: ListView(children: controller.list.value.map((i) => Text('$i')).toList()))),
           ],
         ),
       ),
@@ -58,8 +58,11 @@ class MyHomePage extends StatelessWidget {
 
 class Controller {
   Rx<int> counter = 0.obs;
+  Rx<List<int>> list = [0].obs;
 
   void increment() {
     counter.value++;
+    list.value.add(counter.value);
+    list.update();
   }
 }
