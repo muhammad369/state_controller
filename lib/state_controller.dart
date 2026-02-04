@@ -1,5 +1,5 @@
+import 'dart:async';
 import 'package:flutter/cupertino.dart';
-import 'package:rxdart/rxdart.dart';
 
 class StateProvider<C> extends InheritedWidget {
   final C controller;
@@ -25,16 +25,33 @@ extension ContextExt<Controller> on BuildContext {
 }
 
 class Rx<T> {
-  late BehaviorSubject<T> _subject;
-  Rx(T value) {
-    this._subject = BehaviorSubject.seeded(value);
+  T _value;
+  final StreamController<T> _controller;
+  Rx(T seed) :
+    _value = seed,
+    _controller = StreamController<T>.broadcast()
+  {}
+
+  //Stream<T> get stream => _controller.stream;
+
+  T get value => _value;
+
+  set value(T v) { _value = v; _controller.add(v);}
+
+  // stream that immediately emits current value, then subsequent updates
+  Stream<T> get stream async* {
+    yield _value;
+    yield* _controller.stream;
   }
 
-  ValueStream<T> get stream => _subject.stream;
+  // subscribe convenience
+  StreamSubscription<T> listen(void Function(T) onData,
+      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
+    return stream.listen(onData,
+        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+  }
 
-  T get value => _subject.value;
-
-  set value(T v) => _subject.add(v);
+  Future<void> close() => _controller.close();
 }
 
 extension ObservableObjectExt<O> on O {

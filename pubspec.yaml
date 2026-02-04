@@ -1,6 +1,6 @@
 name: state_controller
 description: "A state management package"
-version: 0.0.1
+version: 1.0.0
 homepage:
 
 environment:
@@ -10,7 +10,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  rxdart: ^0.28.0
 
 dev_dependencies:
   flutter_test:
