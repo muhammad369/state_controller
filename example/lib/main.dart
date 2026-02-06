@@ -58,11 +58,10 @@ class MyHomePage extends StatelessWidget {
 
 class Controller {
   Rx<int> counter = 0.obs;
-  Rx<List<int>> list = [0].obs;
+  RxList<int> list = [0].obs;
 
   void increment() {
     counter.value++;
-    list.value.add(counter.value);
-    list.update();
+    list.add(counter.value);
   }
 }

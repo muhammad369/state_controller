@@ -2,7 +2,7 @@
 # State Controller
 
 Liked the way GetX manages state, but don't want to use a big framework that does everything?
-few lines of code with no dependency, wrapping `InheritedWidget` and `StreamBuilder` 
+This simple package looks like GetX, wraps `InheritedWidget` and `StreamBuilder`, with no dependencies
 
 ```dart
 // provide the controller in higher point of the widgets tree
