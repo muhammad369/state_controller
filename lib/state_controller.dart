@@ -1,10 +1,15 @@
 import 'dart:async';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/widgets.dart';
 
-class StateProvider<C> extends InheritedWidget {
+// region state Provider
+
+class StateProvider<C extends StateController> extends InheritedWidget {
   final C controller;
 
-  const StateProvider({required Widget view, required this.controller, super.key}) : super(child: view);
+  StateProvider({required Widget view, required this.controller, super.key})
+    : super(
+        child: _ViewWrapper(controller: controller, child: view),
+      );
 
   // Called when dependents should rebuild if data changed.
   @override
@@ -13,16 +18,62 @@ class StateProvider<C> extends InheritedWidget {
   }
 
   // Convenience static method to access the nearest instance.
-  static Controller of<Controller>(BuildContext context) {
+  static Controller of<Controller extends StateController>(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<StateProvider<Controller>>()!.controller;
   }
 }
 
-extension ContextExt<Controller> on BuildContext {
-  Controller get<Controller>() {
+extension ContextExt<Controller extends StateController> on BuildContext {
+  Controller get<Controller extends StateController>() {
     return dependOnInheritedWidgetOfExactType<StateProvider<Controller>>()!.controller;
   }
 }
+
+// endregion
+
+// region Controller and ViewWrapper
+
+class _ViewWrapper extends StatefulWidget {
+  final Widget child;
+  final StateController controller;
+  const _ViewWrapper({required this.child, required this.controller});
+
+  @override
+  State<_ViewWrapper> createState() => _ViewWrapperState();
+}
+
+class _ViewWrapperState extends State<_ViewWrapper> {
+  @override
+  void initState() {
+    widget.controller.onInit(context);
+    //
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.controller.onReady(context);
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.controller.onClose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
+  }
+}
+
+abstract class StateController {
+  void onInit(BuildContext context);
+  void onReady(BuildContext context);
+  void onClose();
+}
+
+// endregion
+
+// region Rx
 
 class Rx<T> {
   T _value;
@@ -35,6 +86,12 @@ class Rx<T> {
   set value(T v) {
     _value = v;
     _controller.add(v);
+  }
+
+  /// The same like setting 'value'
+  void emit(T value) {
+    _value = value;
+    _controller.add(value);
   }
 
   // stream that immediately emits current value, then subsequent updates
@@ -57,6 +114,11 @@ class Rx<T> {
 
   void update() {
     _controller.add(_value);
+  }
+
+  @override
+  String toString() {
+    return _value.toString();
   }
 }
 
@@ -82,7 +144,7 @@ class Obx<S> extends StatelessWidget {
 
 class ObxValue<S> extends StatelessWidget {
   final Rx<S> rx;
-  final Widget Function(BuildContext context, S? value) builder;
+  final Widget Function(BuildContext context, S value) builder;
 
   const ObxValue({super.key, required this.rx, required this.builder});
 
@@ -91,12 +153,12 @@ class ObxValue<S> extends StatelessWidget {
     return StreamBuilder(
       stream: rx.stream,
       initialData: rx.value,
-      builder: (context, snapshot) => builder(context, snapshot.data),
+      builder: (context, snapshot) => builder(context, snapshot.data as S),
     );
   }
 }
 
-class RxList<T> extends Rx<List<T>>{
+class RxList<T> extends Rx<List<T>> {
   RxList(super.seed);
 
   int get length => _value.length;
@@ -107,90 +169,91 @@ class RxList<T> extends Rx<List<T>>{
 
   Iterable<Y> map<Y>(Y Function(T) toElement) => _value.map(toElement);
 
-  List<Widget> mapToWidgets(Widget Function(T) toWidget) => _value.map((i)=> toWidget(i)).toList();
+  List<Widget> mapToWidgets(Widget Function(T) toWidget) => _value.map((i) => toWidget(i)).toList();
 
-  T operator[](int index)=> _value[index];
+  T operator [](int index) => _value[index];
 
-  void operator []=(int index, T value){
+  void operator []=(int index, T value) {
     _value[index] = value;
     update();
   }
 
-  void add(T item){
+  void add(T item) {
     _value.add(item);
     update();
   }
 
-  void addAll(Iterable<T> item){
+  void addAll(Iterable<T> item) {
     _value.addAll(item);
     update();
   }
 
-  void clear(){
+  void clear() {
     _value.clear();
     update();
   }
 
-  void insert(int index, T element){
+  void insert(int index, T element) {
     _value.insert(index, element);
     update();
   }
 
-  void insertAll(int index, Iterable<T> elements){
+  void insertAll(int index, Iterable<T> elements) {
     _value.insertAll(index, elements);
     update();
   }
 
-  void setAll(int index, Iterable<T> elements){
+  void setAll(int index, Iterable<T> elements) {
     _value.setAll(index, elements);
     update();
   }
 
-  void remove(T? item){
+  void remove(T? item) {
     _value.remove(item);
     update();
   }
 
-  T removeAt(int index){
-    var i =_value.removeAt(index);
+  T removeAt(int index) {
+    var i = _value.removeAt(index);
     update();
     return i;
   }
 
-  T removeLast(){
-    var i =_value.removeLast();
+  T removeLast() {
+    var i = _value.removeLast();
     update();
     return i;
   }
 
-  void removeWhere(bool Function(T element) test){
+  void removeWhere(bool Function(T element) test) {
     _value.removeWhere(test);
     update();
   }
 
-  void retainWhere(bool Function(T element) test){
+  void retainWhere(bool Function(T element) test) {
     _value.retainWhere(test);
     update();
   }
 
-  void setRange(int start, int end, Iterable<T> iterable, [int skipCount = 0]){
+  void setRange(int start, int end, Iterable<T> iterable, [int skipCount = 0]) {
     _value.setRange(start, end, iterable, skipCount);
     update();
   }
 
-  void removeRange(int start, int end){
+  void removeRange(int start, int end) {
     _value.removeRange(start, end);
     update();
   }
 
-  void fillRange(int start, int end, [T? fillValue]){
+  void fillRange(int start, int end, [T? fillValue]) {
     _value.fillRange(start, end, fillValue);
     update();
   }
 
-  void replaceRange(int start, int end, Iterable<T> replacements){
+  void replaceRange(int start, int end, Iterable<T> replacements) {
     _value.replaceRange(start, end, replacements);
     update();
   }
-
 }
+
+// endregion

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:state_controller/state_controller.dart';
+import 'package:flutter_state_controller/state_controller.dart';
 
 void main() {
   runApp(const MyApp());
@@ -43,7 +43,7 @@ class MyHomePage extends StatelessWidget {
               controller.counter,
               () => Text('${controller.counter.value}', style: Theme.of(context).textTheme.headlineMedium),
             ),
-            Obx(controller.list, () => SizedBox(height: 200, child: ListView(children: controller.list.value.map((i) => Text('$i')).toList()))),
+            Obx(controller.list, () => SizedBox(height: 200, child: ListView(scrollDirection: Axis.horizontal, children: controller.list.value.map((i) => Text('$i ')).toList()))),
           ],
         ),
       ),
@@ -56,12 +56,31 @@ class MyHomePage extends StatelessWidget {
   }
 }
 
-class Controller {
+class Controller extends StateController {
   Rx<int> counter = 0.obs;
-  RxList<int> list = [0].obs;
+  late RxList<int> list = <int>[].obs;
 
   void increment() {
     counter.value++;
     list.add(counter.value);
+  }
+
+
+  @override
+  void onInit(BuildContext context) {
+    print('controller/onInit()');
+    list.add(-2);
+    counter.value = 8;
+  }
+
+  @override
+  void onReady(BuildContext context) {
+    print('controller/onReady()');
+    list.add(-1);
+  }
+
+  @override
+  void onClose() {
+    // TODO: implement onClose
   }
 }

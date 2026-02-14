@@ -16,7 +16,7 @@ StateProvider(
 
 ```dart
 // controller
-class Controller {
+class Controller extends StateController{
   Rx<int> counter = 0.obs;
   void increment() {
     counter.value++;
