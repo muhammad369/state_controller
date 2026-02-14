@@ -1,6 +1,8 @@
 
 # State Controller
 
+[![pub package](https://img.shields.io/pub/v/flutter_state_controller.svg)](https://pub.dev/packages/flutter_state_controller)
+
 Liked the way GetX manages state, but don't want to use a big framework that does everything?
 This simple package looks like GetX, wraps `InheritedWidget` and `StreamBuilder`, with no dependencies
 
