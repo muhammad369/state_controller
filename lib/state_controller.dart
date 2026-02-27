@@ -3,29 +3,56 @@ import 'package:flutter/widgets.dart';
 
 // region state Provider
 
-class StateProvider<C extends StateController> extends InheritedWidget {
+class StateProvider<C extends StateController> extends StatefulWidget{
+
+  final C Function() controller;
+  final Widget view;
+
+  const StateProvider({super.key, required this.controller, required this.view});
+
+  @override
+  State<StateProvider<C>> createState() => _StateProviderState();
+}
+
+class _StateProviderState<C extends StateController> extends State<StateProvider<C>> {
+
+  late C controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = widget.controller();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _InheritedWidget(view: widget.view, controller: controller);
+  }
+}
+
+class _InheritedWidget<C extends StateController> extends InheritedWidget {
   final C controller;
 
-  StateProvider({required Widget view, required this.controller, super.key})
+  _InheritedWidget({required Widget view, required this.controller, super.key})
     : super(
         child: _ViewWrapper(controller: controller, child: view),
       );
 
   // Called when dependents should rebuild if data changed.
   @override
-  bool updateShouldNotify(covariant StateProvider oldWidget) {
+  bool updateShouldNotify(covariant _InheritedWidget oldWidget) {
     return oldWidget.controller != controller;
   }
 
   // Convenience static method to access the nearest instance.
-  static Controller of<Controller extends StateController>(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<StateProvider<Controller>>()!.controller;
-  }
+  // static Controller of<Controller extends StateController>(BuildContext context) {
+  //   return context.dependOnInheritedWidgetOfExactType<_InheritedWidget<Controller>>()!.controller;
+  // }
 }
 
-extension ContextExt<Controller extends StateController> on BuildContext {
+extension ContextExt on BuildContext {
   Controller get<Controller extends StateController>() {
-    return dependOnInheritedWidgetOfExactType<StateProvider<Controller>>()!.controller;
+    return dependOnInheritedWidgetOfExactType<_InheritedWidget<Controller>>()!.controller;
   }
 }
 

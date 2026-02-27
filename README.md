@@ -9,7 +9,7 @@ This simple package looks like GetX, wraps `InheritedWidget` and `StreamBuilder`
 ```dart
 // provide the controller in higher point of the widgets tree
 StateProvider(
-  controller: Controller(),
+  controller: ()=> Controller(),
   view: MaterialApp(
     home: const MyHomePage(),
   )
